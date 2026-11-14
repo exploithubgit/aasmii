@@ -1,0 +1,346 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>For Aasmi</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=EB+Garamond:ital,wght@0,400;0,500;1,400&family=Homemade+Apple&display=swap" rel="stylesheet">
+<style>
+  /* ---------- Colour tokens ---------- */
+  :root {
+    --paper: #F6F0E6;
+    --ink: #2B2A33;
+    --accent: #B5736A;
+    --faint: rgba(43, 42, 51, 0.45);
+    --wash-opacity: 0.07;
+    --serif: "EB Garamond", Georgia, "Times New Roman", serif;
+    --script: "Homemade Apple", "Segoe Script", "Bradley Hand", cursive;
+  }
+  /* Night mode: follows the device unless the toggle has been used */
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --paper: #1D1B22;
+      --ink: #E4DCCD;
+      --accent: #C98A80;
+      --faint: rgba(228, 220, 205, 0.42);
+      --wash-opacity: 0.05;
+    }
+  }
+  :root[data-theme="dark"] {
+    --paper: #1D1B22;
+    --ink: #E4DCCD;
+    --accent: #C98A80;
+    --faint: rgba(228, 220, 205, 0.42);
+    --wash-opacity: 0.05;
+  }
+
+  /* ---------- Base ---------- */
+  *, *::before, *::after { box-sizing: border-box; }
+  html { -webkit-text-size-adjust: 100%; }
+  body {
+    margin: 0;
+    background: var(--paper);
+    color: var(--ink);
+    font-family: var(--serif);
+    font-size: 19px;
+    line-height: 1.8;
+    transition: background-color .6s ease, color .6s ease;
+  }
+  body.locked { overflow: hidden; }
+  @media (min-width: 700px) { body { font-size: 20px; } }
+
+  /* Faint watercolour wash, fixed in one corner */
+  .wash {
+    position: fixed; inset: 0; z-index: 0; pointer-events: none;
+    opacity: var(--wash-opacity);
+    background:
+      radial-gradient(40vmax 36vmax at 0% 0%, #B5736A 0%, transparent 70%),
+      radial-gradient(34vmax 30vmax at 12% 8%, #7C93B4 0%, transparent 72%);
+    filter: blur(40px);
+  }
+
+  /* Reading progress line */
+  .progress {
+    position: fixed; top: 0; left: 0; height: 1px; width: 100%;
+    background: var(--accent); opacity: .5;
+    transform: scaleX(0); transform-origin: left; z-index: 5;
+  }
+
+  /* ---------- Opening screen ---------- */
+  .gate {
+    position: fixed; inset: 0; z-index: 10;
+    display: flex; flex-direction: column; align-items: center; justify-content: center;
+    background: var(--paper); border: 0; width: 100%; padding: 0;
+    font: inherit; color: inherit; cursor: pointer;
+    transition: opacity 1.5s ease;
+  }
+  .gate.leaving { opacity: 0; pointer-events: none; }
+  .gate .name { color: var(--accent); font-size: 1.5rem; letter-spacing: .02em; }
+  .gate .hint { margin-top: .6rem; font-size: .8rem; color: var(--faint); opacity: .8; }
+  .gate:focus-visible { outline: 1px solid var(--accent); outline-offset: -12px; }
+
+  /* ---------- Letter ---------- */
+  main {
+    position: relative; z-index: 1;
+    opacity: 0; transition: opacity 1.5s ease;
+  }
+  main.shown { opacity: 1; }
+  article {
+    max-width: 38rem; margin: 0 auto;
+    padding: 18vh 1.6rem 28vh;
+  }
+  article p { margin: 0 0 1.9em; }
+  .greeting { color: var(--accent); font-size: 1.3em; margin-bottom: 1.6em; }
+  .signoff { color: var(--accent); font-size: 1.3em; margin-top: 2.4em; }
+  .closing {
+    margin: 22vh 0 0; padding: 0;
+    display: flex; justify-content: center;
+  }
+  .closing img {
+    display: block; max-width: 100%; max-height: 70vh;
+    width: auto; height: auto; border-radius: 2px;
+    opacity: 0; transition: opacity 1.5s ease;
+  }
+  .closing img.shown { opacity: 1; }
+  .reveal-btn {
+    background: none; border: 0; padding: 1rem 1.5rem; cursor: pointer;
+    font: inherit; font-size: .9rem; color: var(--accent); opacity: .7;
+    transition: opacity .8s ease;
+  }
+  .reveal-btn:focus-visible { outline: 1px solid var(--accent); outline-offset: 2px; }
+  .reveal-btn.gone { opacity: 0; pointer-events: none; }
+  @media (prefers-reduced-motion: reduce) {
+    .closing img, .reveal-btn { transition: none; }
+  }
+
+  /* Soft fade-in on scroll */
+  .reveal { opacity: 0; transform: translateY(8px); transition: opacity .7s ease, transform .7s ease; }
+  .reveal.in { opacity: 1; transform: none; }
+  @media (prefers-reduced-motion: reduce) {
+    .reveal { opacity: 1; transform: none; transition: none; }
+    .gate, main, body { transition: none; }
+  }
+
+  /* ---------- Small corner buttons ---------- */
+  .icon-btn {
+    position: fixed; z-index: 6; width: 44px; height: 44px; padding: 0;
+    display: none; align-items: center; justify-content: center;
+    background: none; border: 0; border-radius: 50%;
+    color: var(--accent); opacity: .4; cursor: pointer;
+    transition: opacity .3s ease;
+  }
+  .icon-btn:hover, .icon-btn:focus-visible { opacity: .85; }
+  .icon-btn:focus-visible { outline: 1px solid var(--accent); outline-offset: 2px; }
+  .icon-btn svg { width: 18px; height: 18px; fill: none; stroke: currentColor; stroke-width: 1.5; stroke-linecap: round; stroke-linejoin: round; }
+  body.open .icon-btn { display: flex; }
+  .mute  { right: max(.6rem, env(safe-area-inset-right));  bottom: max(.6rem, env(safe-area-inset-bottom)); }
+  .theme { right: max(.6rem, env(safe-area-inset-right));  top: max(.6rem, env(safe-area-inset-top)); }
+  .mute .off { display: none; }
+  .mute.is-muted .on { display: none; }
+  .mute.is-muted .off { display: inline; }
+  .mute[hidden] { display: none !important; }
+</style>
+</head>
+<body class="locked">
+
+<div class="wash" aria-hidden="true"></div>
+<div class="progress" id="progress" aria-hidden="true"></div>
+
+<audio id="music" src="music.mp3" loop preload="auto"></audio>
+
+<!-- Opening screen -->
+<button class="gate" id="gate" type="button" aria-label="Open the letter">
+  <span class="name">hii</span>
+  <span class="hint">touch me</span>
+</button>
+
+<!-- Small controls -->
+<button class="icon-btn theme" id="theme" type="button" aria-label="Switch between light and dark">
+  <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20 14.5A8 8 0 0 1 9.5 4a8 8 0 1 0 10.5 10.5z"/></svg>
+</button>
+<button class="icon-btn mute" id="mute" type="button" aria-label="Mute music" aria-pressed="false">
+  <svg viewBox="0 0 24 24" aria-hidden="true">
+    <path d="M4 9.5v5h3.5L12 18.5v-13L7.5 9.5z"/>
+    <g class="on"><path d="M15.5 9a4 4 0 0 1 0 6"/><path d="M18 6.5a7.5 7.5 0 0 1 0 11"/></g>
+    <g class="off"><path d="M16 9.5l5 5M21 9.5l-5 5"/></g>
+  </svg>
+</button>
+
+<main id="letter" aria-hidden="true">
+  <article>
+
+    <!-- ============================================================
+         THE LETTER. Edit the text below. One <p> per paragraph.
+         Keep the class names as they are.
+         ============================================================ -->
+
+    <p class="greeting reveal">Pooks</p>
+
+    <p class="reveal">I’ve been thinking about us a lot. About the things we got right, the things we got wrong, and all the moments in between and that I wish I had appreciated more while I was living them. I don’t think I ever really understood how exhausting things had become for you. I knew we were having the same conversations again and again, but I don’t think I understood what it was doing to you. You told me that arguments took everything out of you, and that even the good moments were beginning to feel smaller because of them. I’m sorry I let things get to that point. I know what I was doing. When you were busy, tired, or needed time to yourself, I would start feeling distant from you. Instead of dealing with that feeling myself, I would turn it into questions, accusations, or conversations about whether you loved me, whether you wanted this and that, whether I mattered enough. I did make you feel like you had to prove something that you had already tried to show me. And then, when things got bad, I would apologise because I wanted us to be okay. I understand why those apologies eventually stopped meaning much when the same things kept happening.</p>
+
+    <p class="reveal">I think I was so afraid of not feeling loved that I sometimes failed to appreciate the ways you were already loving me. I know you tried. I know there were times you made an effort to make me happy even when you didn’t have much left to give. I wish I had made you feel appreciated for it instead of making you feel that it still wasn’t enough. I also realise that perhaps you kept too much inside until it became too much to carry. I wish we had made it easier for you to tell me when something was wrong before it turned into something neither of us knew how to handle. I never wanted us to be two people silently carrying hurt, only to let out when we’re already exhausted.</p>
+
+    <p class="reveal">I don’t want to pretend that I had no needs of my own. I did. I wanted consistency, affection, effort, and to feel included in your life. I wanted to know that even when life got busy, we were still making a place for each other. Sometimes I felt like I was waiting for you, and I didn’t know how to handle that feeling. But I understand now that wanting those things doesn’t give me the right to make you feel guilty for needing space. I never wanted to be your entire world, Aasmi. I just wanted to know I had a place in it. And I should have learned to trust that place without asking you to prove it every time I felt uncertain.</p>
+
+    <p class="reveal">I want you to know that I am not saying all this because I think a few paragraphs can suddenly fix what went wrong. I know I have to work on myself, especially on how I deal with uncertainty, how I communicate when I’m hurt, and how I respond when you need room to breathe. I do want to be able to give you the space without a test of how much you love me. I do want to listen without becoming defensive babes, and talk about difficult things without making them feel like arguments. I do want to understand you better, not just ask you to understand me.</p>
+
+    <p class="reveal">And I do hope we can both learn to be honest with each other before things build up. I can respect your independence babes. I don’t need to be part of every moment or know every little thing. But I do want us to keep choosing each other even when life isn’t particularly romantic or convenient. To me, devotion never meant being together every second. It means knowing we’re on the same side. It’s us against the problem, never me against you.</p>
+
+    <p class="reveal">I keep thinking about the little things. Days we spent, how excited we were, how much we laughed. I don’t know why these memories comes back so often, but it does. Maybe because it reminds me of how happy we could be just doing something ordinary together. I think that’s what I miss most: not some perfect version of us, but us. The stupid convos, smallest updates, hearing about your day. You telling me about the most ordinary thing that happened to you has genuinely been one of my favourite feelings.</p>
+
+    <p class="reveal">And I hope you never forget how much I admire you. You call yourself God’s weakest soldier, but you’re honestly one of the strongest people I know. I know life hasn’t always been rainbows and colours on you, and I know you’ve carried things you haven’t always spoken about to anyone. I hope you keep becoming everything you want to be. I hope you find happiness in you, in your family, in your dreams, and in all the things that make you you. I never want loving me to feel like it came at the cost of any of that.</p>
+
+    <p class="reveal">I don’t know what you’re thinking right now, and I won’t pretend that I do. When you said you were tired and didn’t want us to continue that conversation, I heard you. I know you need space, and I want to respect that. I’m not writing this to ask you for an answer or to make your birthday about us. I just didn’t want another important moment to pass without telling you what I should have told you much more often: I appreciate you. I am grateful for you. And I am sorry for the ways I made loving me harder than it needed to be.</p>
+
+    <p class="reveal">I still don’t want to give up on us. Not saying this because I can’t imagine a life without you, or because I think you owe me another chance, but because what we shared means too much to me to walk away from without being honest about how much I still believe in it. If you ever choose to try again, I want us to build something gentler than what we had. I know that would take time, patience, and effort from both of us. I am willing to do my part, not just say the right things.</p>
+
+    <p class="reveal">And if you really had decided that your path has to be different from mine no matter what, I will never hold that against you pooks. I’ll protect what we had and never forget what you meant to me. I will always be grateful that, even for a while, I got to call you my baby.</p>
+
+    <p class="reveal">It’s your birthday this Monday. Happy birthday my love. I hope this year is kind to you. I hope you really celebrate and feel loved in all the ways you deserve.</p>
+
+    <p class="reveal">I don’t know what the future holds for us. But if there’s ever a day when you look back and wonder whether I meant it when I said I wanted a life with you, I hope you remember this, I did. I still do. And if we ever find our way back to each other, I hope it’s not because we were afraid to let go, but only because we both found a better way to love.</p>
+
+    <p class="signoff reveal">Take care of yourself babes. Always.</p>
+
+    <!-- Final picture: save your image as picture.jpg in the same folder -->
+    <figure class="closing reveal" id="closing">
+      <button class="reveal-btn" id="revealBtn" type="button">tap to reveal</button>
+      <img id="closingImg" src="picture.jpg" alt="" hidden onerror="this.parentNode.style.display='none'">
+    </figure>
+
+    <!-- ============================ END OF LETTER ============================ -->
+
+  </article>
+</main>
+
+<script>
+(function () {
+  var root = document.documentElement;
+  var body = document.body;
+  var gate = document.getElementById('gate');
+  var letter = document.getElementById('letter');
+  var audio = document.getElementById('music');
+  var muteBtn = document.getElementById('mute');
+  var themeBtn = document.getElementById('theme');
+  var progress = document.getElementById('progress');
+
+  var TARGET_VOLUME = 0.35;
+  var FADE_MS = 3000;
+  var started = false;      // true once the first tap has happened
+  var muted = false;
+  var audioOk = true;
+  var fadeTimer = null;
+
+  /* ---------- Music ---------- */
+  audio.volume = 0;
+  // If the file is missing or broken, fail silently and hide the button.
+  audio.addEventListener('error', function () { audioOk = false; muteBtn.hidden = true; });
+
+  function fadeIn() {
+    clearInterval(fadeTimer);
+    var steps = 60, i = 0;
+    fadeTimer = setInterval(function () {
+      i++;
+      audio.volume = Math.min(TARGET_VOLUME, TARGET_VOLUME * (i / steps));
+      if (i >= steps) clearInterval(fadeTimer);
+    }, FADE_MS / steps);
+  }
+
+  function startMusic() {
+    if (!audioOk) return;
+    try {
+      var p = audio.play();
+      if (p && p.catch) p.catch(function () { /* silent */ });
+      fadeIn();
+    } catch (e) { /* silent */ }
+  }
+
+  function setMuted(m) {
+    muted = m;
+    audio.muted = m;
+    muteBtn.classList.toggle('is-muted', m);
+    muteBtn.setAttribute('aria-pressed', String(m));
+    muteBtn.setAttribute('aria-label', m ? 'Unmute music' : 'Mute music');
+  }
+  muteBtn.addEventListener('click', function () { setMuted(!muted); });
+
+  // Pause when the tab is hidden, resume when it returns
+  document.addEventListener('visibilitychange', function () {
+    if (!started || !audioOk) return;
+    if (document.hidden) {
+      audio.pause();
+    } else {
+      var p = audio.play();
+      if (p && p.catch) p.catch(function () {});
+    }
+  });
+
+  /* ---------- Opening ---------- */
+  gate.addEventListener('click', function () {
+    if (started) return;
+    started = true;
+    startMusic();
+    body.classList.add('open');
+    letter.removeAttribute('aria-hidden');
+    letter.classList.add('shown');
+    gate.classList.add('leaving');
+    setTimeout(function () {
+      gate.style.display = 'none';
+      body.classList.remove('locked');
+      window.scrollTo(0, 0);
+    }, 1500);
+  });
+
+  /* ---------- Soft reveal on scroll ---------- */
+  var items = document.querySelectorAll('.reveal');
+  if ('IntersectionObserver' in window) {
+    var io = new IntersectionObserver(function (entries) {
+      entries.forEach(function (e) {
+        if (e.isIntersecting) { e.target.classList.add('in'); io.unobserve(e.target); }
+      });
+    }, { threshold: 0.15, rootMargin: '0px 0px -6% 0px' });
+    items.forEach(function (el) { io.observe(el); });
+  } else {
+    items.forEach(function (el) { el.classList.add('in'); });
+  }
+
+  /* ---------- Tap to reveal the final picture ---------- */
+  var revealBtn = document.getElementById('revealBtn');
+  var closingImg = document.getElementById('closingImg');
+  revealBtn.addEventListener('click', function () {
+    revealBtn.classList.add('gone');
+    setTimeout(function () {
+      revealBtn.style.display = 'none';
+      closingImg.hidden = false;
+      requestAnimationFrame(function () {
+        requestAnimationFrame(function () {
+          closingImg.classList.add('shown');
+          updateProgress();
+        });
+      });
+    }, 700);
+  });
+
+  /* ---------- Reading progress ---------- */
+  function updateProgress() {
+    var h = document.documentElement.scrollHeight - window.innerHeight;
+    var r = h > 0 ? window.scrollY / h : 0;
+    progress.style.transform = 'scaleX(' + Math.min(1, Math.max(0, r)) + ')';
+  }
+  window.addEventListener('scroll', updateProgress, { passive: true });
+  window.addEventListener('resize', updateProgress);
+
+  /* ---------- Light / dark toggle ---------- */
+  themeBtn.addEventListener('click', function () {
+    var current = root.getAttribute('data-theme');
+    if (!current) {
+      current = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+    }
+    root.setAttribute('data-theme', current === 'dark' ? 'light' : 'dark');
+  });
+})();
+</script>
+</body>
+</html>
